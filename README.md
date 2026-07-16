@@ -99,6 +99,24 @@ tested against `src/lib/ingestion/__fixtures__/sample-alert-email.txt`.
 `company,title,description,budget,currency,url,niche,ref`) or a JSON array of
 the same fields.
 
+## AI scoring (Phase 3)
+
+Every ingested opportunity gets an async `score_opportunity` job. The worker
+(`src/lib/scoring/worker.ts`) claims jobs atomically (`claim_queue_jobs`,
+SKIP LOCKED), calls Claude server-side with **structured outputs** (strict
+JSON schema; ranges re-validated in code), stores `fit / margin_potential /
+urgency / effort` (0–100) plus a one-line rationale on the opportunity, and
+retries failures with exponential backoff up to `max_attempts`.
+
+- **Model** comes from `ANTHROPIC_MODEL` (server-side only; default
+  `claude-opus-4-8`). Requires a funded Anthropic account.
+- **Ranked queue UI** at `/opportunities`: composite score =
+  weighted(fit, margin, urgency, 100−effort), re-weightable per org and saved
+  on the organization's settings. "Run scoring now" processes pending jobs
+  in-app; deployed on Vercel, the cron in `vercel.json` hits
+  `GET /api/jobs/run` every 10 minutes (Vercel sends `Authorization: Bearer
+  $CRON_SECRET` automatically when the env var is set).
+
 ### Marketplace API compliance note (read before enabling)
 
 The marketplace adapter (`src/lib/ingestion/marketplace/adapter.ts`) uses

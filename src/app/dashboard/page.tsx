@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -37,11 +39,16 @@ export default async function DashboardPage() {
             Scaffold complete. Business features arrive in later phases.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            Signed in as <span className="font-medium">{email}</span>
-          </p>
-          <SignOutButton />
+        <CardContent className="flex flex-col gap-4">
+          <Button asChild className="w-full">
+            <Link href="/opportunities">Opportunity queue →</Link>
+          </Button>
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-sm text-muted-foreground">
+              Signed in as <span className="font-medium">{email}</span>
+            </p>
+            <SignOutButton />
+          </div>
         </CardContent>
       </Card>
     </main>

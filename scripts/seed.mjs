@@ -273,4 +273,19 @@ const { data: insertedOpps, error: oppError } = await admin
 if (oppError) fail("opportunities insert", oppError);
 console.log(`Opportunities: ${insertedOpps.length} inserted (${insertedOpps.map((o) => o.source).join(", ")})`);
 
+// ── 6. Enqueue scoring jobs for the fresh seed opportunities ────────────────
+// (Seed inserts bypass the ingestion pipeline, so enqueue explicitly. Stale
+// jobs pointing at deleted seed rows fail permanently and harmlessly.)
+{
+  const { error } = await admin.from("job_queue").insert(
+    insertedOpps.map((o) => ({
+      org_id: orgId,
+      job_type: "score_opportunity",
+      payload: { opportunity_id: o.id },
+    })),
+  );
+  if (error) fail("scoring enqueue", error);
+  console.log(`Queued ${insertedOpps.length} scoring jobs (run via the app's "Run scoring now" button or the cron worker).`);
+}
+
 console.log("Seed complete.");

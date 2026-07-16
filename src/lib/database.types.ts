@@ -567,18 +567,21 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          settings: Json
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
+          settings?: Json
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          settings?: Json
           updated_at?: string
         }
         Relationships: []
@@ -662,7 +665,28 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      claim_queue_jobs: {
+        Args: { p_job_type: string; p_limit: number }
+        Returns: {
+          attempts: number
+          created_at: string
+          id: string
+          job_type: string
+          last_error: string | null
+          max_attempts: number
+          org_id: string
+          payload: Json
+          run_after: string
+          status: Database["public"]["Enums"]["queue_job_status"]
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "job_queue"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       asset_type:

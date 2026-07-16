@@ -150,7 +150,9 @@ describe.skipIf(!haveCreds)("ingestion pipeline (live database)", () => {
       expect(jobs).toHaveLength(oppCount ?? -1);
       for (const job of jobs!) {
         expect(job.job_type).toBe("score_opportunity");
-        expect(job.status).toBe("pending");
+        // The Phase 3 worker suite may run concurrently and transiently claim
+        // jobs (org-filtered, then released) — both states prove the enqueue.
+        expect(["pending", "processing"]).toContain(job.status);
         expect((job.payload as { opportunity_id?: string }).opportunity_id).toBeTruthy();
       }
     },
