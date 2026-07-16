@@ -117,6 +117,31 @@ retries failures with exponential backoff up to `max_attempts`.
   `GET /api/jobs/run` every 10 minutes (Vercel sends `Authorization: Bearer
   $CRON_SECRET` automatically when the env var is set).
 
+## Proposal engine (Phase 4)
+
+From the opportunity queue, **Draft** retrieves the most relevant corpus
+assets and has Claude write a grounded, referenced proposal in your voice —
+saved as `proposals.draft`, never sent. You edit the **final** text at
+`/proposals/[id]`, then the gate:
+
+> **Approve & mark sent** is the ONLY path to `status = 'sent'`. It requires a
+> signed-in human, stamps `approved_by` + `sent_at`, and writes an append-only
+> `audit_events` row. ForgeOS never transmits proposals to any marketplace or
+> third party — "sent" records that *you* sent it yourself. A static
+> compliance test (`src/lib/proposals/no-auto-send.test.ts`) fails the suite
+> if any other code path ever writes `sent` or if automated surfaces touch
+> the proposals table.
+
+Afterwards, record the **outcome** (reply / shortlisted / won / lost /
+no-response); "won" automatically files the final text back into the RAG
+corpus as a `winning_proposal` asset, so future drafts learn from wins.
+
+**Retrieval:** with `EMBEDDINGS_PROVIDER` configured (voyage or openai) and
+`npm run embed` run, drafts ground on cosine-matched assets via pgvector;
+without it, a deterministic type-aware fallback picks niche-matched case
+studies, winning proposals, your pricing framework, and tone sample — so
+drafting works with no extra accounts.
+
 ### Marketplace API compliance note (read before enabling)
 
 The marketplace adapter (`src/lib/ingestion/marketplace/adapter.ts`) uses

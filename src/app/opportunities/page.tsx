@@ -23,6 +23,7 @@ import {
 import { compositeScore, parseWeights } from "@/lib/scoring/composite";
 import { createClient } from "@/lib/supabase/server";
 
+import { draftProposal } from "../proposals/actions";
 import { runScoringNow, saveWeights } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -77,9 +78,14 @@ export default async function OpportunitiesPage() {
             Ranked by composite score — reweight below to change the ordering.
           </p>
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/dashboard">Dashboard</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/proposals">Proposals</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard">Dashboard</Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -140,12 +146,13 @@ export default async function OpportunitiesPage() {
                 <TableHead className="text-center">F / M / U / E</TableHead>
                 <TableHead className="text-right">Composite</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
               {ranked.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                     No opportunities yet — ingest some via the API endpoints or
                     run <code>npm run seed</code>.
                   </TableCell>
@@ -186,6 +193,14 @@ export default async function OpportunitiesPage() {
                     <Badge variant={o.status === "scored" ? "default" : "secondary"}>
                       {o.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <form action={draftProposal}>
+                      <input type="hidden" name="opportunity_id" value={o.id} />
+                      <Button size="sm" variant="outline" type="submit">
+                        Draft
+                      </Button>
+                    </form>
                   </TableCell>
                 </TableRow>
               ))}

@@ -12,7 +12,8 @@
     "db:push": "node scripts/db.mjs db push",
     "db:types": "node scripts/db.mjs types",
     "db:advisors": "node scripts/db.mjs db advisors --linked --type all",
-    "seed": "node scripts/seed.mjs"
+    "seed": "node scripts/seed.mjs",
+    "embed": "node scripts/embed.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.1",

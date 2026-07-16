@@ -19,6 +19,7 @@ export type Database = {
           content: string
           created_at: string
           embedding: string | null
+          embedding_model: string | null
           id: string
           is_seed: boolean
           niche_id: string | null
@@ -31,6 +32,7 @@ export type Database = {
           content: string
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           id?: string
           is_seed?: boolean
           niche_id?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           content?: string
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           id?: string
           is_seed?: boolean
           niche_id?: string | null
@@ -686,6 +689,22 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      match_assets: {
+        Args: {
+          p_embedding: string
+          p_limit?: number
+          p_niche_id?: string
+          p_org_id: string
+        }
+        Returns: {
+          content: string
+          id: string
+          niche_id: string
+          similarity: number
+          title: string
+          type: Database["public"]["Enums"]["asset_type"]
+        }[]
       }
     }
     Enums: {
