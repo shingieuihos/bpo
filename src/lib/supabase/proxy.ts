@@ -7,6 +7,9 @@ import { getPublicEnv } from "@/lib/env";
 const PUBLIC_PATHS = ["/login"];
 
 function isPublicPath(pathname: string): boolean {
+  // API routes enforce their own auth (ingest secrets, cron bearer token, or
+  // Supabase session) and must answer JSON 401s — never a login redirect.
+  if (pathname.startsWith("/api/")) return true;
   return PUBLIC_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );

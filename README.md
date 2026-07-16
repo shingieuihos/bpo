@@ -76,6 +76,42 @@ contractors, audit_events) plus a client-LTV reporting view.
 First-time setup after pasting credentials: `npm run db:link && npm run db:push`,
 sign up at `/login`, then `npm run seed`.
 
+## Ingestion (Phase 2)
+
+Four compliant channels feed the `opportunities` queue; every one flows through
+a single pipeline (`src/lib/ingestion/create-opportunity.ts`) that normalizes,
+**dedups** (unique on external ref, content-hash fallback otherwise), inserts,
+and enqueues an async `score_opportunity` job in `job_queue` (Phase 3 consumes it).
+
+| Channel | Endpoint | Auth |
+| --- | --- | --- |
+| Marketplace read API | `POST /api/ingest/marketplace/poll` | `Authorization: Bearer $CRON_SECRET` (called by a scheduler) |
+| Alert emails | `POST /api/ingest/email` | `X-Ingest-Secret: $INGEST_EMAIL_SECRET` (called by your inbound-email forwarder) |
+| Owned inbound (your funnels) | `POST /api/ingest/inbound` | `X-Ingest-Token: $INGEST_FORM_TOKEN` + honeypot field |
+| Outbound import (CSV/JSON) | `POST /api/import/outbound` | Signed-in session (org-scoped) |
+
+**Alert emails:** configure job alerts inside the marketplace yourself, forward
+them (Cloudflare Email Workers / Mailgun / SendGrid inbound parse) as JSON
+`{ subject, text }` to `/api/ingest/email`. The parser is provider-agnostic and
+tested against `src/lib/ingestion/__fixtures__/sample-alert-email.txt`.
+
+**Outbound import:** `POST` a CSV (`content-type: text/csv`; header row
+`company,title,description,budget,currency,url,niche,ref`) or a JSON array of
+the same fields.
+
+### Marketplace API compliance note (read before enabling)
+
+The marketplace adapter (`src/lib/ingestion/marketplace/adapter.ts`) uses
+**official, documented READ APIs only**, is disabled by default, and is fully
+inert unless `MARKETPLACE_API_ENABLED=true` **and** `MARKETPLACE_API_KEY` are
+set. Enabling it for a specific marketplace requires that marketplace's
+approved API access (e.g. an approved API application) and compliance with its
+terms of service. **This codebase contains no scraping, crawling, or
+headless-browser machinery — and a compliance test
+(`src/lib/ingestion/compliance.test.ts`) fails the suite if such a dependency
+is ever added.** The system never submits proposals or takes any action on a
+marketplace on your behalf.
+
 ## Project layout
 
 ```

@@ -346,6 +346,56 @@ export type Database = {
           },
         ]
       }
+      job_queue: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          job_type: string
+          last_error: string | null
+          max_attempts: number
+          org_id: string
+          payload: Json
+          run_after: string
+          status: Database["public"]["Enums"]["queue_job_status"]
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          job_type: string
+          last_error?: string | null
+          max_attempts?: number
+          org_id: string
+          payload?: Json
+          run_after?: string
+          status?: Database["public"]["Enums"]["queue_job_status"]
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          job_type?: string
+          last_error?: string | null
+          max_attempts?: number
+          org_id?: string
+          payload?: Json
+          run_after?: string
+          status?: Database["public"]["Enums"]["queue_job_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_queue_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       niches: {
         Row: {
           created_at: string
@@ -395,6 +445,7 @@ export type Database = {
           budget: number | null
           created_at: string
           currency: string
+          dedup_key: string | null
           description: string | null
           effort_score: number | null
           fit_score: number | null
@@ -418,6 +469,7 @@ export type Database = {
           budget?: number | null
           created_at?: string
           currency?: string
+          dedup_key?: string | null
           description?: string | null
           effort_score?: number | null
           fit_score?: number | null
@@ -441,6 +493,7 @@ export type Database = {
           budget?: number | null
           created_at?: string
           currency?: string
+          dedup_key?: string | null
           description?: string | null
           effort_score?: number | null
           fit_score?: number | null
@@ -654,6 +707,7 @@ export type Database = {
         | "no_response"
       proposal_status: "draft" | "approved" | "sent" | "archived"
       qa_status: "pending" | "passed" | "rework"
+      queue_job_status: "pending" | "processing" | "done" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -827,6 +881,7 @@ export const Constants = {
       ],
       proposal_status: ["draft", "approved", "sent", "archived"],
       qa_status: ["pending", "passed", "rework"],
+      queue_job_status: ["pending", "processing", "done", "failed"],
     },
   },
 } as const
