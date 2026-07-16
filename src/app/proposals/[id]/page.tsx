@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 
+import { createDeal } from "../../pipeline/actions";
 import { approveProposal, saveFinal, setOutcome } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -129,6 +130,21 @@ export default async function ProposalDetailPage({
                     Save a final version first — the gate refuses empty finals.
                   </p>
                 )}
+              </form>
+            )}
+
+            {isSent && (
+              <form action={createDeal} className="border-t pt-4">
+                <input type="hidden" name="proposal_id" value={proposal.id} />
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-xs text-muted-foreground">
+                    Track this in the pipeline — value defaults from the
+                    opportunity budget.
+                  </p>
+                  <Button type="submit" variant="secondary">
+                    Create deal →
+                  </Button>
+                </div>
               </form>
             )}
 

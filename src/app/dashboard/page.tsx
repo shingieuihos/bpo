@@ -40,9 +40,20 @@ export default async function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <Button asChild className="w-full">
-            <Link href="/opportunities">Opportunity queue →</Link>
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button asChild>
+              <Link href="/opportunities">Opportunities</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/proposals">Proposals</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/pipeline">Pipeline</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/clients">Clients</Link>
+            </Button>
+          </div>
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
               Signed in as <span className="font-medium">{email}</span>

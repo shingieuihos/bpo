@@ -142,6 +142,23 @@ without it, a deterministic type-aware fallback picks niche-matched case
 studies, winning proposals, your pricing framework, and tone sample — so
 drafting works with no extra accounts.
 
+## Pipeline + CRM (Phase 5)
+
+A sent proposal becomes a **deal** (`Create deal` on the proposal page —
+value defaults from the opportunity budget). `/pipeline` shows the board
+(qualifying → negotiation → contract sent → won/lost) with per-card quick
+stage change, plus a **next actions** list sorted by date with overdue
+highlighting. `/deals/[id]` edits value, estimated delivery cost, win
+probability, and the next action; gross margin is DB-computed.
+
+**Winning requires a client** — pick an existing one or create it in the
+mark-won flow; the client gets `first_won_at` stamped and the opportunity
+closes as won (audited). `/clients` lists lifetime value (from the
+`v_client_lifetime_value` view) and POPIA classification; `/clients/[id]`
+has deal history, classification editing, **Export data** (full JSON
+download), and **Delete client data** (typed confirmation) — the POPIA
+affordances from the data-handling principles.
+
 ### Marketplace API compliance note (read before enabling)
 
 The marketplace adapter (`src/lib/ingestion/marketplace/adapter.ts`) uses
