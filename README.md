@@ -1,7 +1,7 @@
 # ForgeOS
 
 ForgeOS is the internal platform for running an AI-assisted agency/BPO business — client work, delivery pipelines, and operations in one place.
-Built in phases; this repo currently contains **Phase 0**: the authenticated application shell (no business logic yet).
+Built in phases; this repo currently contains **Phase 0** (authenticated application shell) and **Phase 1** (full data model with org-scoped Row Level Security, pgvector RAG corpus, and seed data).
 
 ## Stack
 
@@ -44,17 +44,46 @@ npm install
 
 ## Scripts
 
-| Command         | What it does                            |
-| --------------- | --------------------------------------- |
-| `npm run dev`   | Start the dev server                    |
-| `npm run build` | Production build (works without creds)  |
-| `npm start`     | Serve the production build              |
-| `npm run lint`  | ESLint (next core-web-vitals)           |
-| `npm test`      | Vitest (runs without Supabase creds)    |
+| Command               | What it does                                              |
+| --------------------- | --------------------------------------------------------- |
+| `npm run dev`         | Start the dev server                                       |
+| `npm run build`       | Production build (works without creds)                     |
+| `npm start`           | Serve the production build                                 |
+| `npm run lint`        | ESLint (next core-web-vitals)                              |
+| `npm test`            | Vitest — unit tests plus a live RLS isolation test that    |
+|                       | auto-skips when `.env.local` has no credentials            |
+| `npm run db:link`     | Link the repo to your cloud Supabase project               |
+| `npm run db:push`     | Apply `supabase/migrations/` to the cloud database         |
+| `npm run db:types`    | Regenerate `src/lib/database.types.ts` from the live schema |
+| `npm run db:advisors` | Run Supabase security/performance advisors                 |
+| `npm run seed`        | Seed the first user's org with sample niches/assets/opportunities (idempotent; rows marked `[SEED]`) |
 
-## Project layout (Phase 0)
+## Database (Phase 1)
+
+The schema lives in `supabase/migrations/` — 11 org-scoped tables (organizations,
+org_members, niches, opportunities, proposals, deals, clients, assets, delivery_jobs,
+contractors, audit_events) plus a client-LTV reporting view.
+
+- **RLS on every table**: rows are only visible to members of the owning org
+  (verified by `src/lib/supabase/rls.integration.test.ts` against the live DB).
+- **audit_events is append-only** — no UPDATE/DELETE for app users; every proposal
+  approval/send will be recorded here (Phase 4).
+- **assets.embedding** is a pgvector column for the RAG corpus; embeddings and the
+  vector index arrive in Phase 4.
+- **Signup trigger**: every new auth user automatically gets a personal organization
+  (single-operator default; multi-seat comes later).
+
+First-time setup after pasting credentials: `npm run db:link && npm run db:push`,
+sign up at `/login`, then `npm run seed`.
+
+## Project layout
 
 ```
+supabase/
+  migrations/       # schema as SQL migrations (applied with npm run db:push)
+scripts/
+  db.mjs            # Supabase CLI wrapper (reads .env.local; link/push/types)
+  seed.mjs          # idempotent seed: 2 niches, 4 RAG assets, 4 opportunities
 src/
   app/
     login/          # email+password sign-in / sign-up
@@ -63,16 +92,20 @@ src/
   components/ui/    # shadcn/ui components
   lib/
     env.ts          # runtime validation of required public env vars
+    database.types.ts  # generated from the live schema (npm run db:types)
     supabase/
       client.ts     # browser client (anon key only)
       server.ts     # server client (@supabase/ssr cookie handling)
       admin.ts      # service-role client — import "server-only"
-      middleware.ts # session refresh + route protection helper
-  middleware.ts     # Next.js middleware entry
+      proxy.ts      # session refresh + route protection helper
+      rls.integration.test.ts  # live cross-org isolation proof
+  proxy.ts          # Next.js proxy entry (Next 16 renamed middleware → proxy)
 ```
 
 ## Phases
 
-Development proceeds in phases. **Phase 0 (this): scaffold, auth, env wiring — complete.**
-Later phases add the business features; the Claude API integration starts in Phase 3
-(env vars are already reserved in `.env.example`).
+Development proceeds in phases. **Phase 0 (scaffold, auth, env wiring) and
+Phase 1 (data model + RLS + seed) are complete.** Later phases add ingestion,
+AI scoring, the proposal engine, pipeline UI, delivery orchestration, and
+reporting; the Claude API integration starts in Phase 3 (env vars are already
+reserved in `.env.example`).

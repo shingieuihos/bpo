@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:link": "node scripts/db.mjs link",
+    "db:push": "node scripts/db.mjs db push",
+    "db:types": "node scripts/db.mjs types",
+    "db:advisors": "node scripts/db.mjs db advisors --linked --type all",
+    "seed": "node scripts/seed.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
@@ -31,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "shadcn": "^4.13.0",
+    "supabase": "^2.109.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"
