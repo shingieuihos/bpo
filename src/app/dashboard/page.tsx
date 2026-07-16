@@ -53,6 +53,9 @@ export default async function DashboardPage() {
             <Button asChild variant="secondary">
               <Link href="/clients">Clients</Link>
             </Button>
+            <Button asChild variant="secondary" className="col-span-2">
+              <Link href="/delivery">Delivery</Link>
+            </Button>
           </div>
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">

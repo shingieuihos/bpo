@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/server";
 
+import { createJob } from "../../delivery/actions";
 import { updateDealDetails, winDeal } from "../../pipeline/actions";
 
 export const dynamic = "force-dynamic";
@@ -28,17 +29,24 @@ export default async function DealDetailPage({
   const { data: claims } = await supabase.auth.getClaims();
   if (!claims?.claims) redirect("/login");
 
-  const [{ data: deal }, { data: clients }] = await Promise.all([
+  const [{ data: deal }, { data: clients }, { data: jobs }] = await Promise.all([
     supabase
       .from("deals")
       .select(
-        "id, stage, value, currency, estimated_delivery_cost, actual_delivery_cost, gross_margin, win_probability, next_action_at, next_action_note, opportunities (id, title, source), clients (id, name)",
+        "id, stage, value, currency, estimated_delivery_cost, actual_delivery_cost, gross_margin, win_probability, next_action_at, next_action_note, opportunities (id, title, source, description), clients (id, name)",
       )
       .eq("id", id)
       .maybeSingle(),
     supabase.from("clients").select("id, name").order("name").limit(200),
+    supabase
+      .from("delivery_jobs")
+      .select("id, status, qa_status")
+      .eq("deal_id", id)
+      .neq("status", "cancelled")
+      .limit(1),
   ]);
   if (!deal) notFound();
+  const deliveryJob = jobs?.[0] ?? null;
 
   const isClosed = deal.stage === "won" || deal.stage === "lost";
   const dateValue = deal.next_action_at
@@ -131,6 +139,44 @@ export default async function DealDetailPage({
           </form>
         </CardContent>
       </Card>
+
+      {deal.stage === "won" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Delivery</CardTitle>
+            <CardDescription>
+              {deliveryJob
+                ? "This deal has a delivery job in flight."
+                : "Spawn the delivery job — AI decomposes the brief into routed tasks."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {deliveryJob ? (
+              <Button asChild>
+                <Link href={`/delivery/${deliveryJob.id}`}>
+                  Open delivery job ({deliveryJob.status}, QA {deliveryJob.qa_status})
+                </Link>
+              </Button>
+            ) : (
+              <form action={createJob} className="flex flex-col gap-3">
+                <input type="hidden" name="deal_id" value={deal.id} />
+                <Label htmlFor="brief">Intake brief</Label>
+                <textarea
+                  id="brief"
+                  name="brief"
+                  rows={5}
+                  defaultValue={deal.opportunities?.description ?? ""}
+                  placeholder="What exactly are we delivering, for whom, by when, and what does done look like?"
+                  className="w-full resize-y rounded-md border bg-background p-3 text-sm"
+                />
+                <Button type="submit" className="w-fit">
+                  Create delivery job
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {!isClosed && (
         <Card>
