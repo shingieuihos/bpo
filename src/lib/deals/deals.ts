@@ -165,7 +165,7 @@ export async function markDealWon(params: {
   const wonAt = new Date().toISOString();
   const { error: updateError } = await admin
     .from("deals")
-    .update({ stage: "won", client_id: clientId, win_probability: 100 })
+    .update({ stage: "won", client_id: clientId, win_probability: 100, won_at: wonAt })
     .eq("id", deal.id);
   if (updateError) throw new Error(`deal win failed: ${updateError.message}`);
 

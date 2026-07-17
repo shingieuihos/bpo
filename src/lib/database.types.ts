@@ -223,6 +223,7 @@ export type Database = {
           updated_at: string
           value: number | null
           win_probability: number | null
+          won_at: string | null
         }
         Insert: {
           actual_delivery_cost?: number | null
@@ -240,6 +241,7 @@ export type Database = {
           updated_at?: string
           value?: number | null
           win_probability?: number | null
+          won_at?: string | null
         }
         Update: {
           actual_delivery_cost?: number | null
@@ -257,6 +259,7 @@ export type Database = {
           updated_at?: string
           value?: number | null
           win_probability?: number | null
+          won_at?: string | null
         }
         Relationships: [
           {

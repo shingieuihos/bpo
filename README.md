@@ -159,6 +159,20 @@ has deal history, classification editing, **Export data** (full JSON
 download), and **Delete client data** (typed confirmation) — the POPIA
 affordances from the data-handling principles.
 
+## Delivery + revenue (Phases 6-7)
+
+Won deals spawn **delivery jobs** (`/delivery/[id]`): Claude decomposes the
+brief into routed tasks (`ai` first-drafts vs `contractor`), each with status
+and actual cost. **The QA gate blocks "delivered" until QA passes** (rework
+loops supported, everything audited), and task costs roll into
+`deals.actual_delivery_cost` so gross margin reflects reality.
+
+`/reports` computes revenue live from the pipeline (no separate data store):
+pipeline value by stage (raw + probability-weighted), win rate, won revenue,
+delivery cost, **gross margin per project and per niche**, client LTV, and
+cash timing by month won — with date filtering. Every metric is verified
+against hand calculations in `src/lib/reporting/metrics.test.ts`.
+
 ### Marketplace API compliance note (read before enabling)
 
 The marketplace adapter (`src/lib/ingestion/marketplace/adapter.ts`) uses

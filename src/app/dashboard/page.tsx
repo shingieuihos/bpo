@@ -53,8 +53,11 @@ export default async function DashboardPage() {
             <Button asChild variant="secondary">
               <Link href="/clients">Clients</Link>
             </Button>
-            <Button asChild variant="secondary" className="col-span-2">
+            <Button asChild variant="secondary">
               <Link href="/delivery">Delivery</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/reports">Revenue</Link>
             </Button>
           </div>
           <div className="flex items-center justify-between gap-4">
