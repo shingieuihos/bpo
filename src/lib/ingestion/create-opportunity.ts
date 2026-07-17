@@ -112,30 +112,36 @@ export async function createOpportunity(
 }
 
 /**
- * Resolve which org an unauthenticated-but-token-verified ingest request
- * belongs to. Single-operator default: the sole organization. When several
- * orgs exist the caller must pass an explicit org id (?org=<uuid>).
+ * Resolve which org an unauthenticated-but-token-verified request (ingest
+ * endpoints, MCP) belongs to. Precedence:
+ *   1. explicit org id (?org=<uuid>),
+ *   2. FORGEOS_ORG_ID env (multi-org installs pin the operator org),
+ *   3. the OLDEST organization — in a single-operator install that is always
+ *      the operator's workspace (created at signup; anything newer is
+ *      transient, e.g. test fixtures).
  */
 export async function resolveIngestOrg(
   explicitOrgId?: string | null,
 ): Promise<string> {
   const admin = createAdminClient();
 
-  if (explicitOrgId) {
+  const pinned = explicitOrgId || process.env.FORGEOS_ORG_ID || null;
+  if (pinned) {
     const { data, error } = await admin
       .from("organizations")
       .select("id")
-      .eq("id", explicitOrgId)
+      .eq("id", pinned)
       .maybeSingle();
     if (error || !data) throw new Error("unknown org");
     return data.id;
   }
 
-  const { data, error } = await admin.from("organizations").select("id").limit(2);
+  const { data, error } = await admin
+    .from("organizations")
+    .select("id")
+    .order("created_at", { ascending: true })
+    .limit(1);
   if (error) throw new Error(`org lookup failed: ${error.message}`);
   if (!data || data.length === 0) throw new Error("no organization exists yet");
-  if (data.length > 1) {
-    throw new Error("multiple orgs exist — pass ?org=<uuid> to disambiguate");
-  }
   return data[0].id;
 }

@@ -62,6 +62,27 @@ describe("compliance: no auto-send path", () => {
     expect(offenders, `automated code touching proposals: ${offenders.join(", ")}`).toEqual([]);
   });
 
+  it("API routes (including the MCP server) never import the approval gate", () => {
+    const offenders: string[] = [];
+    for (const file of walk(join(SRC, "app", "api"))) {
+      const source = readFileSync(file, "utf8");
+      // Match import statements only — doc comments may reference the gate.
+      if (/from\s+["'][^"']*lib\/proposals\/approve["']/.test(source)) {
+        offenders.push(relative(process.cwd(), file));
+      }
+    }
+    expect(offenders, `API code importing the gate: ${offenders.join(", ")}`).toEqual([]);
+  });
+
+  it("the MCP server exposes no send/approve/outcome capability", () => {
+    const source = readFileSync(
+      join(SRC, "app", "api", "mcp", "route.ts"),
+      "utf8",
+    );
+    // Tool names are declared in TOOLS; none may smell like sending.
+    expect(source).not.toMatch(/name:\s*["'][^"']*(send|approve|submit|outcome)[^"']*["']/i);
+  });
+
   it("nothing in the codebase transmits proposals externally", () => {
     // The proposals modules must not perform any outbound HTTP other than the
     // Anthropic SDK call used for drafting (no fetch to marketplaces, no

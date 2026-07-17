@@ -173,6 +173,45 @@ delivery cost, **gross margin per project and per niche**, client LTV, and
 cash timing by month won — with date filtering. Every metric is verified
 against hand calculations in `src/lib/reporting/metrics.test.ts`.
 
+## MCP server (Phase 8)
+
+ForgeOS exposes read/draft operations as an MCP server at `POST /api/mcp`
+(Streamable HTTP, bearer-token auth via `MCP_SECRET`). Connect from Claude
+Code:
+
+```bash
+claude mcp add --transport http forgeos https://<your-host>/api/mcp \
+  --header "Authorization: Bearer <MCP_SECRET>"
+```
+
+Tools: `list_top_opportunities`, `score_queue`, `draft_proposal`,
+`pipeline_summary`. **MCP can never send:** there is no approve/send/outcome
+tool, API routes are test-forbidden from importing the approval gate, and
+drafting via MCP is audited with `via: "mcp"`. The human gate stays app-only.
+
+## Operator runbook (daily flow)
+
+1. **Morning triage** — open `/opportunities`. New arrivals from your alert
+   emails / inbound forms / imports are queued; click **Run scoring now** if
+   any are pending, then work the list top-down by composite score.
+2. **Draft** — hit **Draft** on anything worth pursuing. Review the AI draft
+   at `/proposals/[id]`, edit it into your final, then **Approve & mark
+   sent** — and actually send it yourself (Upwork, email, wherever). ForgeOS
+   records; you send.
+3. **Track** — when a proposal gets traction, **Create deal** and walk it
+   across `/pipeline`. Keep `next action` dates current; overdue ones
+   surface at the top.
+4. **Win** — mark won with the client attached. Record proposal outcomes as
+   they land; wins feed the RAG corpus automatically.
+5. **Deliver** — from the won deal, create the delivery job, **Decompose
+   with AI**, route tasks (AI first-drafts vs contractors), record actual
+   costs, pass the **QA gate**, mark delivered.
+6. **Friday review** — `/reports`: margin per niche vs your targets, win
+   rate, cash timing. Kill niches that underperform; feed winners.
+
+Keep the corpus sharp: after every win, check the winning proposal landed in
+assets; re-run `npm run embed` if you use vector retrieval.
+
 ### Marketplace API compliance note (read before enabling)
 
 The marketplace adapter (`src/lib/ingestion/marketplace/adapter.ts`) uses

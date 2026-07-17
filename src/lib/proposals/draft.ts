@@ -22,8 +22,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function draftProposalForOpportunity(params: {
   opportunityId: string;
   orgId: string;
-  actorId: string;
-}): Promise<{ proposalId: string }> {
+  /** Human user id from the app; null when invoked via MCP (drafting only —
+   *  the approval gate always requires a real signed-in human). */
+  actorId: string | null;
+  via?: "app" | "mcp";
+}): Promise<{ proposalId: string; draft: string }> {
   const admin = createAdminClient();
 
   const { data: opp, error: oppError } = await admin
@@ -96,9 +99,10 @@ export async function draftProposalForOpportunity(params: {
     entity_id: proposal.id,
     metadata: {
       opportunity_id: opp.id,
+      via: params.via ?? "app",
       grounded_on: assets.map((a) => ({ id: a.id, type: a.type, via: a.via })),
     },
   });
 
-  return { proposalId: proposal.id };
+  return { proposalId: proposal.id, draft };
 }
