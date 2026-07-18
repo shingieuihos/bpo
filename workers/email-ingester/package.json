@@ -4,6 +4,7 @@
   "description": "Cloudflare Worker for BPO email alert ingestion",
   "main": "src/index.js",
   "scripts": {
+    "build": "echo 'Worker ready'",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },
