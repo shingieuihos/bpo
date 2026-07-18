@@ -1,3 +1,9 @@
+# keep_vars preserves the INGEST_SECRET set in the Cloudflare dashboard
+# across wrangler deploys. The secret itself never lives in this repo.
 name = "bpo-email-ingester"
 main = "src/index.js"
 compatibility_date = "2026-07-18"
+keep_vars = true
+
+[vars]
+INGEST_ENDPOINT = "https://bpo-lyart.vercel.app/api/ingest/email"

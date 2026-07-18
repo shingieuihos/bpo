@@ -1,32 +1,34 @@
+import PostalMime from 'postal-mime';
+
 export default {
-  async email(message) {
-    const text = await message.text();
-    const subject = message.headers.get('subject') || '';
+  async email(message, env) {
+    // Job alerts are small; anything huge is not for us. The ingest API
+    // caps bodies at 256KB anyway.
+    if (message.rawSize > 1_000_000) {
+      message.setReject('Message too large');
+      return;
+    }
 
-    try {
-      const response = await fetch(
-        'https://bpo-lyart.vercel.app/api/ingest/email',
-        {
-          method: 'POST',
-          headers: {
-            'X-Ingest-Secret': 'sk_ingest_email_7f2d8c9e1a4b6f3h5j2k8m1n9p4q7r5s',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ text, subject }),
-        }
-      );
+    // message.raw is a single-use stream — buffer it, then parse the MIME.
+    const buffer = await new Response(message.raw).arrayBuffer();
+    const email = await PostalMime.parse(buffer);
 
-      if (!response.ok) {
-        console.error(
-          `Ingest failed (${response.status}):`,
-          await response.text()
-        );
-      } else {
-        const result = await response.json();
-        console.log('Ingested:', result);
-      }
-    } catch (error) {
-      console.error('Email ingestion error:', error.message);
+    const text = email.text ?? email.html ?? '';
+    const subject = email.subject ?? message.headers.get('subject') ?? '';
+
+    const response = await fetch(env.INGEST_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'X-Ingest-Secret': env.INGEST_SECRET,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text, subject }),
+    });
+
+    if (!response.ok) {
+      console.error(`Ingest failed (${response.status}): ${await response.text()}`);
+    } else {
+      console.log('Ingested:', await response.json());
     }
   },
 };
