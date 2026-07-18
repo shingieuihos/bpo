@@ -1,0 +1,10 @@
+name = "bpo-email-ingester"
+type = "service"
+main = "src/index.js"
+
+[env.production]
+route = "bpo-email-ingester"
+zone_id = ""
+
+[vars]
+INGEST_ENDPOINT = "https://bpo-lyart.vercel.app/api/ingest/email"
